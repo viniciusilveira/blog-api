@@ -29,3 +29,4 @@ blog-*.tar
 
 /config/db/dev.secret.exs
 /config/db/test.secret.exs
+/volumes/**/*
