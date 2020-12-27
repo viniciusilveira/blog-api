@@ -7,11 +7,7 @@ defmodule BlogWeb.ErrorView do
   #   %{errors: %{detail: "Internal Server Error"}}
   # end
 
-  def render("invalid_credentials.json", _assigns) do
-    %{message: "invalid fields"}
-  end
-
-  def render("unauthorized.json", %{message: message}) do
+  def render("error.json", %{message: message}) do
     %{message: message}
   end
 

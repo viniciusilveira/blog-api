@@ -38,19 +38,24 @@ defmodule Blog.Users do
   @doc """
   Gets a single user.
 
-  Raises `Ecto.NoResultsError` if the User does not exist.
+  Returns `nil` if the User does not exist.
 
   ## Examples
 
-      iex> get_user!("514a6e41-b377-48bf-9087-c01cc6e028f9")
+      iex> get_user("514a6e41-b377-48bf-9087-c01cc6e028f9")
       %User{}
 
-      iex> get_user!(123)
-      ** (Ecto.NoResultsError)
+      iex> get_user(123)
+      {:error, :not_found, "message"}
 
   """
-  @spec get_user!(charlist) :: %User{}
-  def get_user!(id), do: Repo.get!(User, id)
+  @spec get_user(charlist) :: %User{}
+  def get_user(id) do
+    case Repo.get(User, id) do
+      %User{} = user -> {:ok, user}
+      nil -> {:error, :not_found, "User does not exists"}
+    end
+  end
 
   @doc """
   Creates a user.

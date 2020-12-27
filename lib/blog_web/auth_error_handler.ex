@@ -11,7 +11,7 @@ defmodule Blog.AuthErrorHandler do
     conn
     |> resp(401, body)
     |> put_view(BlogWeb.ErrorView)
-    |> render("unauthorized.json", message: error_message(conn))
+    |> render("error.json", message: error_message(conn))
   end
 
   defp error_message(conn) do

@@ -29,7 +29,9 @@ defmodule BlogWeb.UserController do
   end
 
   def show(conn, %{"id" => id}) do
-    user = Users.get_user!(id)
-    render(conn, "show.json", user: user)
+    with %User{} <- Guardian.Plug.current_resource(conn),
+         {:ok, %User{} = user} <- Users.get_user(id) do
+      render(conn, "show.json", user: user)
+    end
   end
 end

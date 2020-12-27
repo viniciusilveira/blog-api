@@ -3,6 +3,8 @@ defmodule BlogWeb.UserControllerTest do
 
   import Blog.Factory
 
+  alias Blog.{Guardian, Users}
+
   describe "#POST /user" do
     @valid_attrs string_params_for(:user)
 
@@ -62,8 +64,6 @@ defmodule BlogWeb.UserControllerTest do
   end
 
   describe "#GET /user" do
-    alias Blog.Guardian
-    alias Blog.Users
 
     setup %{conn: conn} do
       {:ok, user} = Users.create_user(params_for(:user))
@@ -86,7 +86,7 @@ defmodule BlogWeb.UserControllerTest do
       conn = get(conn, Routes.user_path(conn, :index))
       assert response = json_response(conn, 401)
 
-      assert response["message"] == "token not found"
+      assert response["message"] == "Token not found"
     end
 
     test "renders error when token is invalid", %{conn: conn} do
@@ -95,7 +95,51 @@ defmodule BlogWeb.UserControllerTest do
 
       assert response = json_response(conn, 401)
 
-      assert response["message"] == "token is expired or invalid"
+      assert response["message"] == "Token is expired or invalid"
+    end
+  end
+
+  describe "#GET /user:id" do
+    setup %{conn: conn} do
+      {:ok, user} = Users.create_user(params_for(:user))
+      {:ok, token, _claims} = Guardian.encode_and_sign(user)
+      conn = put_req_header(conn, "authorization", "Bearer #{token}")
+
+      {:ok, conn: conn, user: user}
+    end
+
+    test "render a requested user", %{conn: conn, user: user} do
+      conn = get(conn, Routes.user_path(conn, :show, user.id))
+      assert response = json_response(conn, 200)
+
+      assert response["id"] == user.id
+      assert response["display_name"] == user.display_name
+      assert response["email"] == user.email
+      assert response["image"] == user.image
+    end
+
+    test "render a error message when user not found", %{conn: conn} do
+      conn = get(conn, Routes.user_path(conn, :show, Ecto.UUID.generate()))
+      assert response = json_response(conn, 404)
+
+      assert response["message"] == "User does not exists"
+    end
+
+    test "renders error when token does not send", %{conn: conn, user: user} do
+      conn = delete_req_header(conn, "authorization")
+      conn = get(conn, Routes.user_path(conn, :show, user.id))
+      assert response = json_response(conn, 401)
+
+      assert response["message"] == "Token not found"
+    end
+
+    test "renders error when token is invalid", %{conn: conn, user: user} do
+      conn = put_req_header(conn, "authorization", "invalidtoken")
+      conn = get(conn, Routes.user_path(conn, :show, user.id))
+
+      assert response = json_response(conn, 401)
+
+      assert response["message"] == "Token is expired or invalid"
     end
   end
 end

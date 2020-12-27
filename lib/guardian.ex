@@ -17,10 +17,7 @@ defmodule Blog.Guardian do
     {:error, :reason_for_error}
   end
 
-  def resource_from_claims(%{"sub" => id}) do
-    user = Users.get_user!(id)
-    {:ok, user}
-  end
+  def resource_from_claims(%{"sub" => id}), do: Users.get_user(id)
 
   def resource_from_claims(_claims) do
     {:error, :reason_for_error}

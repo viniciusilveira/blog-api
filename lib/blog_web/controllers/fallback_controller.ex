@@ -22,17 +22,17 @@ defmodule BlogWeb.FallbackController do
   end
 
   # This clause is an example of how to handle resources that cannot be found.
-  def call(conn, {:error, :not_found}) do
+  def call(conn, {:error, :not_found, message}) do
     conn
     |> put_status(:not_found)
     |> put_view(BlogWeb.ErrorView)
-    |> render(:"404")
+    |> render("error.json", message: message)
   end
 
   def call(conn, {:error, :invalid_credentials}) do
     conn
     |> put_status(:bad_request)
     |> put_view(BlogWeb.ErrorView)
-    |> render("invalid_credentials.json")
+    |> render("error.json", message: "invalid fields")
   end
 end
