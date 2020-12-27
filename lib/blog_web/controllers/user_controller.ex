@@ -8,6 +8,16 @@ defmodule BlogWeb.UserController do
 
   action_fallback BlogWeb.FallbackController
 
+  def index(conn, _attrs) do
+    with %User{} <- Guardian.Plug.current_resource(conn),
+         users <- Users.list_users() do
+      conn
+      |> put_status(:ok)
+      |> put_resp_header("location", Routes.user_path(conn, :index, users))
+      |> render("index.json", users: users)
+    end
+  end
+
   def create(conn, %{"user" => user_params}) do
     with {:ok, %User{} = user} <- Users.create_user(user_params),
          {:ok, token, _claims} <- Guardian.encode_and_sign(user) do

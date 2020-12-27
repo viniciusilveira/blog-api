@@ -60,4 +60,42 @@ defmodule BlogWeb.UserControllerTest do
       assert response["message"] == "User already exists"
     end
   end
+
+  describe "#GET /user" do
+    alias Blog.Guardian
+    alias Blog.Users
+
+    setup %{conn: conn} do
+      {:ok, user} = Users.create_user(params_for(:user))
+      {:ok, token, _claims} = Guardian.encode_and_sign(user)
+      conn = put_req_header(conn, "authorization", "Bearer #{token}")
+
+      {:ok, conn: conn}
+    end
+
+    test "renders all users", %{conn: conn} do
+      insert_pair(:user)
+      conn = get(conn, Routes.user_path(conn, :index))
+      assert response = json_response(conn, 200)
+
+      assert Enum.count(response) == 3
+    end
+
+    test "renders error when token does not send", %{conn: conn} do
+      conn = delete_req_header(conn, "authorization")
+      conn = get(conn, Routes.user_path(conn, :index))
+      assert response = json_response(conn, 401)
+
+      assert response["message"] == "token not found"
+    end
+
+    test "renders error when token is invalid", %{conn: conn} do
+      conn = put_req_header(conn, "authorization", "invalidtoken")
+      conn = get(conn, Routes.user_path(conn, :index))
+
+      assert response = json_response(conn, 401)
+
+      assert response["message"] == "token is expired or invalid"
+    end
+  end
 end

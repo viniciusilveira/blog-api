@@ -25,6 +25,17 @@ defmodule Blog.Users do
         }
 
   @doc """
+  List all users
+
+  ## Examples
+
+      iex> list_users()
+        %{%User{}, %User{}, ...}
+  """
+  @spec list_users() :: map()
+  def list_users(), do: Repo.all(User)
+
+  @doc """
   Gets a single user.
 
   Raises `Ecto.NoResultsError` if the User does not exist.
