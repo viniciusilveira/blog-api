@@ -8,4 +8,9 @@ config :blog, BlogWeb.Endpoint,
 
 # Print only warnings and errors during test
 config :logger, level: :warn
+
+config :blog, Blog.Guardian,
+  issuer: "blog",
+  secret_key: "teuO4kXNDKsgvd8rxG1UiA+l+Ndt0bT5RaBOYerzWRHvgiO2FkCsfpqmPA29k5ps"
+
 import_config "db/#{Mix.env()}.secret.exs"

@@ -47,4 +47,8 @@ config :phoenix, :stacktrace_depth, 20
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime
 
+config :blog, Blog.Guardian,
+  issuer: "blog",
+  secret_key: "teuO4kXNDKsgvd8rxG1UiA+l+Ndt0bT5RaBOYerzWRHvgiO2FkCsfpqmPA29k5ps"
+
 import_config "db/#{Mix.env()}.secret.exs"
