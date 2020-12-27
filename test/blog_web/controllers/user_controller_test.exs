@@ -64,7 +64,6 @@ defmodule BlogWeb.UserControllerTest do
   end
 
   describe "#GET /user" do
-
     setup %{conn: conn} do
       {:ok, user} = Users.create_user(params_for(:user))
       {:ok, token, _claims} = Guardian.encode_and_sign(user)
@@ -99,7 +98,7 @@ defmodule BlogWeb.UserControllerTest do
     end
   end
 
-  describe "#GET /user:id" do
+  describe "#GET /user/:id" do
     setup %{conn: conn} do
       {:ok, user} = Users.create_user(params_for(:user))
       {:ok, token, _claims} = Guardian.encode_and_sign(user)
@@ -136,6 +135,40 @@ defmodule BlogWeb.UserControllerTest do
     test "renders error when token is invalid", %{conn: conn, user: user} do
       conn = put_req_header(conn, "authorization", "invalidtoken")
       conn = get(conn, Routes.user_path(conn, :show, user.id))
+
+      assert response = json_response(conn, 401)
+
+      assert response["message"] == "Token is expired or invalid"
+    end
+  end
+
+  describe "#DELETE /user/me" do
+    setup %{conn: conn} do
+      {:ok, user} = Users.create_user(params_for(:user))
+      {:ok, token, _claims} = Guardian.encode_and_sign(user)
+      conn = put_req_header(conn, "authorization", "Bearer #{token}")
+
+      {:ok, conn: conn, user: user}
+    end
+
+    test "render success when user is deleted", %{conn: conn, user: %{id: id}} do
+      conn = delete(conn, Routes.user_path(conn, :delete))
+      assert conn.status == 204
+
+      assert Users.get_user(id) == {:error, :not_found, "User does not exists"}
+    end
+
+    test "renders error when token does not send", %{conn: conn} do
+      conn = delete_req_header(conn, "authorization")
+      conn = delete(conn, Routes.user_path(conn, :delete))
+      assert response = json_response(conn, 401)
+
+      assert response["message"] == "Token not found"
+    end
+
+    test "renders error when token is invalid", %{conn: conn} do
+      conn = put_req_header(conn, "authorization", "invalidtoken")
+      conn = delete(conn, Routes.user_path(conn, :delete))
 
       assert response = json_response(conn, 401)
 

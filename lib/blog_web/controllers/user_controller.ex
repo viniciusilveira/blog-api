@@ -34,4 +34,13 @@ defmodule BlogWeb.UserController do
       render(conn, "show.json", user: user)
     end
   end
+
+  def delete(conn, _attrs) do
+    with %User{} = user <- Guardian.Plug.current_resource(conn),
+         {:ok, _struct} <- Users.delete_user(user.id) do
+      conn
+      |> resp(:no_content, "User deleted")
+      |> send_resp()
+    end
+  end
 end

@@ -105,4 +105,13 @@ defmodule Blog.UsersTest do
                Users.authenticate(%{email: "not_registered@email.com", password: "11111111"})
     end
   end
+
+  describe "delete_user/1" do
+    test "delete_user/1 when user exists" do
+      user = insert(:user)
+      assert {:ok, _struct} = Users.delete_user(user.id)
+
+      assert Users.get_user(user.id) == {:error, :not_found, "User does not exists"}
+    end
+  end
 end

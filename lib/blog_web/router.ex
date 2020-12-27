@@ -21,5 +21,6 @@ defmodule BlogWeb.Router do
 
     get "/users", UserController, :index
     get "/users/:id", UserController, :show
+    delete "/users/me", UserController, :delete
   end
 end
