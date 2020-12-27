@@ -15,9 +15,6 @@ defmodule Blog.AuthErrorHandler do
   end
 
   defp error_message(conn) do
-    require IEx
-    IEx.pry()
-
     case get_req_header(conn, "authorization") do
       [] -> "Token not found"
       _ -> "Token is expired or invalid"
