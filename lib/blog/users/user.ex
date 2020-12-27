@@ -1,8 +1,11 @@
 defmodule Blog.Users.User do
+  @moduledoc false
+
   use Ecto.Schema
   import Ecto.Changeset
 
   alias Argon2
+  alias Blog.Users.User
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
@@ -47,4 +50,23 @@ defmodule Blog.Users.User do
   end
 
   defp put_password_hash(changeset), do: changeset
+
+  @login_required_fields ~w(email password)a
+
+  @doc false
+  def login_changeset(attrs) do
+    %User{}
+    |> change(attrs)
+    |> custom_validate_required(@login_required_fields)
+  end
+
+  defp custom_validate_required(changeset, fields) do
+    Enum.reduce(fields, changeset, fn field, changeset ->
+      case get_field(changeset, field) do
+        nil -> add_error(changeset, field, "is required")
+        "" -> add_error(changeset, field, "is not allowed to be empty")
+        _ -> changeset
+      end
+    end)
+  end
 end

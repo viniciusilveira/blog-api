@@ -7,6 +7,10 @@ defmodule BlogWeb.ErrorView do
   #   %{errors: %{detail: "Internal Server Error"}}
   # end
 
+  def render("invalid_credentials.json", _assigns) do
+    %{message: "invalid fields"}
+  end
+
   # By default, Phoenix returns the status message from
   # the template name. For example, "404.json" becomes
   # "Not Found".

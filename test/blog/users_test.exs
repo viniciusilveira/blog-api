@@ -2,12 +2,11 @@ defmodule Blog.UsersTest do
   use Blog.DataCase
 
   alias Blog.Users
+  alias Blog.Users.User
 
   import Blog.Factory
 
-  describe "create_user" do
-    alias Blog.Users.User
-
+  describe "create_user/1" do
     @valid_attrs params_for(:user)
 
     test "create_user/1 with valid data creates a user" do
@@ -57,6 +56,53 @@ defmodule Blog.UsersTest do
       assert {:error, %Ecto.Changeset{} = changeset} = Users.create_user(@valid_attrs)
 
       assert "User already exists" in errors_on(changeset).email
+    end
+  end
+
+  describe "authenticate/2" do
+    setup do
+      user_attrs = params_for(:user)
+      Users.create_user(user_attrs)
+
+      {:ok, user_attrs: %{email: user_attrs.email, password: user_attrs.password}}
+    end
+
+    test "authenticate/2 with valid data returns user", %{user_attrs: user_attrs} do
+      assert {:ok, %User{} = user} = Users.authenticate(user_attrs)
+      assert user.email == user_attrs.email
+    end
+
+    test "authenticate/2 without email returns error", %{user_attrs: user_attrs} do
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Users.authenticate(Map.delete(user_attrs, :email))
+
+      assert "is required" in errors_on(changeset).email
+    end
+
+    test "authenticate/2 without password returns error", %{user_attrs: user_attrs} do
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Users.authenticate(Map.delete(user_attrs, :password))
+
+      assert "is required" in errors_on(changeset).password
+    end
+
+    test "authenticate/2 with empty email returns error", %{user_attrs: user_attrs} do
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Users.authenticate(Map.merge(user_attrs, %{email: ""}))
+
+      assert "is not allowed to be empty" in errors_on(changeset).email
+    end
+
+    test "authenticate/2 with empty password returns error", %{user_attrs: user_attrs} do
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Users.authenticate(Map.merge(user_attrs, %{password: ""}))
+
+      assert "is not allowed to be empty" in errors_on(changeset).password
+    end
+
+    test "authenticate/2 with invalid credentials returns error" do
+      assert {:error, :invalid_credentials} =
+               Users.authenticate(%{email: "not_registered@email.com", password: "11111111"})
     end
   end
 end

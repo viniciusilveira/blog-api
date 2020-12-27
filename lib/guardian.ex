@@ -1,4 +1,8 @@
 defmodule Blog.Guardian do
+  @moduledoc """
+    Moodule to implements the token generates logic
+  """
+
   use Guardian, otp_app: :blog
 
   alias Blog.Users

@@ -17,7 +17,12 @@ defmodule Blog.Users do
           password: password,
           image: image
         }
-  @type t :: %{display_name: charlist, email: charlist, password: charlist, image: charlist}
+  @type t :: %{
+          display_name: String.t(),
+          email: String.t(),
+          password: String.t(),
+          image: String.t()
+        }
 
   @doc """
   Gets a single user.
@@ -59,5 +64,43 @@ defmodule Blog.Users do
     %User{}
     |> User.changeset(attrs)
     |> Repo.insert()
+  end
+
+  @doc """
+  Authenticate user
+
+  ## Examples
+
+      iex> authenticate("vini@mail.com", "123456")
+      {:ok, %User{}}
+
+      iex> authenticate("vini@mail.com", "invalid")
+      {:error, :invalid_credentials}
+  """
+  @spec authenticate(%{password: String.t(), email: String.t()}) :: {:ok, %User{}}
+  def authenticate(attrs) do
+    with %Ecto.Changeset{valid?: true} <- User.login_changeset(attrs),
+         %User{} = user <-
+           get_user_by_email(attrs.email) do
+      verify_pass(attrs.password, user)
+    else
+      %Ecto.Changeset{valid?: false} = changeset ->
+        {:error, changeset}
+
+      nil ->
+        Argon2.no_user_verify()
+        {:error, :invalid_credentials}
+    end
+  end
+
+  defp verify_pass(plain_text_password, user) do
+    case Argon2.verify_pass(plain_text_password, user.password) do
+      true -> {:ok, user}
+      _ -> {:error, :invalid_credentials}
+    end
+  end
+
+  defp get_user_by_email(email) do
+    Repo.get_by(User, email: email)
   end
 end
