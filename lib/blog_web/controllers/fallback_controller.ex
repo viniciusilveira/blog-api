@@ -21,10 +21,9 @@ defmodule BlogWeb.FallbackController do
     |> render("error.json", changeset: changeset)
   end
 
-  # This clause is an example of how to handle resources that cannot be found.
-  def call(conn, {:error, :not_found, message}) do
+  def call(conn, {:error, status, message}) do
     conn
-    |> put_status(:not_found)
+    |> put_status(status)
     |> put_view(BlogWeb.ErrorView)
     |> render("error.json", message: message)
   end
