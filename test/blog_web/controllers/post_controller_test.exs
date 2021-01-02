@@ -1,9 +1,11 @@
 defmodule BlogWeb.PostControllerTest do
   use BlogWeb.ConnCase
+  alias Blog.Repo
 
   import Blog.Factory
 
-  alias Blog.{Guardian, Users}
+  alias Blog.{Guardian, Posts, Users}
+  alias Blog.Posts.Post
 
   @valid_attrs string_params_for(:post)
 
@@ -16,13 +18,11 @@ defmodule BlogWeb.PostControllerTest do
   end
 
   describe "#POST /posts" do
-    test "renders post when data is valid", %{conn: conn, user: %{id: user_id}} do
+    test "renders post when data is valid", %{conn: conn} do
       conn = post(conn, Routes.post_path(conn, :create), @valid_attrs)
 
-      assert response = json_response(conn, 201)
-      assert response["content"] == @valid_attrs["content"]
-      assert response["title"] == @valid_attrs["title"]
-      assert response["user_id"] == user_id
+      post = Post |> Ecto.Query.first() |> Repo.one()
+      assert render_json("show.json", post: post) == json_response(conn, 201)
     end
 
     test "renders error message when title  is empty", %{conn: conn} do
@@ -60,10 +60,9 @@ defmodule BlogWeb.PostControllerTest do
 
   describe "#GET /post" do
     test "render all posts", %{conn: conn, user: %{id: user_id}} do
-      insert_pair(:post, user_id: user_id)
+      posts = insert_pair(:post, user_id: user_id) |> Repo.preload(:user)
       conn = get(conn, Routes.post_path(conn, :index))
-      assert response = json_response(conn, 200)
-      assert Enum.count(response) == 2
+      assert render_json("index.json", posts: posts) == json_response(conn, 200)
     end
 
     test "renders error when token does not send", %{conn: conn} do
@@ -90,9 +89,7 @@ defmodule BlogWeb.PostControllerTest do
       post = :post |> insert(user_id: user_id) |> Repo.preload(:user)
 
       conn = get(conn, Routes.post_path(conn, :show, post.id))
-      assert response = json_response(conn, 200)
-      assert response["id"] == post.id
-      assert response["user"]["id"] == post.user_id
+      assert render_json("show_with_user.json", post: post) == json_response(conn, 200)
     end
 
     test "render a error message when post not found", %{conn: conn} do
@@ -124,21 +121,22 @@ defmodule BlogWeb.PostControllerTest do
 
   describe "#GET /post/search?q=search_term" do
     test "render all searched posts by title", %{conn: conn, user: %{id: user_id}} do
-      insert_pair(:post, user_id: user_id, title: "Elixir > Java")
+      posts = insert_pair(:post, user_id: user_id, title: "Elixir > Java") |> Repo.preload(:user)
       conn = get(conn, "/post/search?q=elixir")
-      assert response = json_response(conn, 200)
-      assert Enum.count(response) == 2
+      assert render_json("index.json", posts: posts) == json_response(conn, 200)
     end
 
     test "render all searched posts by content", %{conn: conn, user: %{id: user_id}} do
       insert_pair(:post, user_id: user_id, title: "Elixir > Java")
-      insert_pair(:post, user_id: user_id, content: "Elixir is the best programing language")
+      posts =
+        :post
+        |>insert_pair(user_id: user_id, content: "Elixir is the best programing language")
+        |> Repo.preload(:user)
       conn = get(conn, "/post/search?q=programing language")
-      assert response = json_response(conn, 200)
-      assert Enum.count(response) == 2
+      assert render_json("index.json", posts: posts) == json_response(conn, 200)
     end
 
-    test "render a error message when posts not found", %{conn: conn, user: %{id: user_id}} do
+    test "render a empty list when posts not found", %{conn: conn, user: %{id: user_id}} do
       insert_pair(:post, user_id: user_id, title: "Elixir > Java")
       insert_pair(:post, user_id: user_id, content: "Elixir is the best programing language")
       conn = get(conn, "/post/search?q=isto non ecziste")
@@ -285,8 +283,8 @@ defmodule BlogWeb.PostControllerTest do
   defp render_json(template, assigns) do
     assigns = Map.new(assigns)
 
-    Blog.PostView.render(template, assigns)
-    |> Poison.encode!
-    |> Poison.decode!
+    BlogWeb.PostView.render(template, assigns)
+    |> Jason.encode!
+    |> Jason.decode!
   end
 end
