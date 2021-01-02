@@ -14,41 +14,41 @@ defmodule BlogWeb.SessionControllerTest do
     end
 
     test "render token when email and password is valid", %{conn: conn, auth_attrs: auth_attrs} do
-      conn = post(conn, "/api/login", auth_attrs)
+      conn = post(conn, "/login", auth_attrs)
 
       assert %{"token" => _token} = json_response(conn, 200)
     end
 
     test "render error message when email is nil", %{conn: conn, auth_attrs: auth_attrs} do
-      conn = post(conn, "/api/login", Map.delete(auth_attrs, "email"))
+      conn = post(conn, "/login", Map.delete(auth_attrs, "email"))
 
       assert response = json_response(conn, 400)
       assert response["message"] == "\"email\" is required"
     end
 
     test "render error message when password is nil", %{conn: conn, auth_attrs: auth_attrs} do
-      conn = post(conn, "/api/login", Map.delete(auth_attrs, "password"))
+      conn = post(conn, "/login", Map.delete(auth_attrs, "password"))
 
       assert response = json_response(conn, 400)
       assert response["message"] == "\"password\" is required"
     end
 
     test "render error message when email is empty", %{conn: conn, auth_attrs: auth_attrs} do
-      conn = post(conn, "/api/login", Map.merge(auth_attrs, %{"email" => ""}))
+      conn = post(conn, "/login", Map.merge(auth_attrs, %{"email" => ""}))
 
       assert response = json_response(conn, 400)
       assert response["message"] == "\"email\" is not allowed to be empty"
     end
 
     test "render error message when password is empty", %{conn: conn, auth_attrs: auth_attrs} do
-      conn = post(conn, "/api/login", Map.merge(auth_attrs, %{"password" => ""}))
+      conn = post(conn, "/login", Map.merge(auth_attrs, %{"password" => ""}))
 
       assert response = json_response(conn, 400)
       assert response["message"] == "\"password\" is not allowed to be empty"
     end
 
     test "render error message when password is invalid", %{conn: conn, auth_attrs: auth_attrs} do
-      conn = post(conn, "/api/login", Map.merge(auth_attrs, %{"password" => "invalidpasswd"}))
+      conn = post(conn, "/login", Map.merge(auth_attrs, %{"password" => "invalidpasswd"}))
 
       assert response = json_response(conn, 400)
       assert response["message"] == "invalid fields"

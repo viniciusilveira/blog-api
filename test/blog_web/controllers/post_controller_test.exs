@@ -125,7 +125,7 @@ defmodule BlogWeb.PostControllerTest do
   describe "#GET /post/search?q=search_term" do
     test "render all searched posts by title", %{conn: conn, user: %{id: user_id}} do
       insert_pair(:post, user_id: user_id, title: "Elixir > Java")
-      conn = get(conn, "/api/post/search?q=elixir")
+      conn = get(conn, "/post/search?q=elixir")
       assert response = json_response(conn, 200)
       assert Enum.count(response) == 2
     end
@@ -133,7 +133,7 @@ defmodule BlogWeb.PostControllerTest do
     test "render all searched posts by content", %{conn: conn, user: %{id: user_id}} do
       insert_pair(:post, user_id: user_id, title: "Elixir > Java")
       insert_pair(:post, user_id: user_id, content: "Elixir is the best programing language")
-      conn = get(conn, "/api/post/search?q=programing language")
+      conn = get(conn, "/post/search?q=programing language")
       assert response = json_response(conn, 200)
       assert Enum.count(response) == 2
     end
@@ -141,14 +141,14 @@ defmodule BlogWeb.PostControllerTest do
     test "render a error message when posts not found", %{conn: conn, user: %{id: user_id}} do
       insert_pair(:post, user_id: user_id, title: "Elixir > Java")
       insert_pair(:post, user_id: user_id, content: "Elixir is the best programing language")
-      conn = get(conn, "/api/post/search?q=isto non ecziste")
+      conn = get(conn, "/post/search?q=isto non ecziste")
       assert [] = json_response(conn, 200)
     end
 
     test "renders error when token does not send", %{conn: conn, user: %{id: user_id}} do
       conn = delete_req_header(conn, "authorization")
       insert_pair(:post, user_id: user_id, title: "Elixir > Java")
-      conn = get(conn, "/api/post/search?q=elixir")
+      conn = get(conn, "/post/search?q=elixir")
       assert response = json_response(conn, 401)
 
       assert response["message"] == "Token not found"
@@ -157,7 +157,7 @@ defmodule BlogWeb.PostControllerTest do
     test "renders error when token is invalid", %{conn: conn, user: %{id: user_id}} do
       conn = put_req_header(conn, "authorization", "invalidtoken")
       insert_pair(:post, user_id: user_id, title: "Elixir > Java")
-      conn = get(conn, "/api/post/search?q=elixir")
+      conn = get(conn, "/post/search?q=elixir")
       assert response = json_response(conn, 401)
 
       assert response["message"] == "Token is expired or invalid"
@@ -280,5 +280,13 @@ defmodule BlogWeb.PostControllerTest do
 
       assert response["message"] == "Token is expired or invalid"
     end
+  end
+
+  defp render_json(template, assigns) do
+    assigns = Map.new(assigns)
+
+    Blog.PostView.render(template, assigns)
+    |> Poison.encode!
+    |> Poison.decode!
   end
 end
