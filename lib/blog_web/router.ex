@@ -9,19 +9,19 @@ defmodule BlogWeb.Router do
     plug Blog.Guardian.AuthPipeline
   end
 
-  scope "/api", BlogWeb do
+  scope "/", BlogWeb do
     pipe_through :api
-    post "/users", UserController, :create
+    post "/user", UserController, :create
 
     post "/login", SessionController, :create
   end
 
-  scope "/api", BlogWeb do
+  scope "/", BlogWeb do
     pipe_through [:api, :jwt_authenticated]
 
-    get "/users", UserController, :index
-    get "/users/:id", UserController, :show
-    delete "/users/me", UserController, :delete
+    get "/user", UserController, :index
+    get "/user/:id", UserController, :show
+    delete "/user/me", UserController, :delete
 
     get "/post", PostController, :index
     get "/post/search", PostController, :search
