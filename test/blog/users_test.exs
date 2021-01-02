@@ -109,7 +109,7 @@ defmodule Blog.UsersTest do
   describe "delete_user/1" do
     test "delete_user/1 when user exists" do
       user = insert(:user)
-      assert {:ok, _struct} = Users.delete_user(user.id)
+      assert {:ok, %User{}} = Users.delete_user(user)
 
       assert Users.get_user(user.id) == {:error, :not_found, "User does not exists"}
     end
