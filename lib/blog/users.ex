@@ -8,22 +8,6 @@ defmodule Blog.Users do
 
   alias Blog.Users.User
 
-  @typedoc """
-    Type that represents a structure of User
-  """
-  @type t(display_name, email, password, image) :: %{
-          display_name: display_name,
-          email: email,
-          password: password,
-          image: image
-        }
-  @type t :: %{
-          display_name: String.t(),
-          email: String.t(),
-          password: String.t(),
-          image: String.t()
-        }
-
   @doc """
   List all users
 
@@ -32,13 +16,13 @@ defmodule Blog.Users do
       iex> list_users()
         %{%User{}, %User{}, ...}
   """
-  @spec list_users() :: map()
+  @spec list_users() :: list
   def list_users(), do: Repo.all(User)
 
   @doc """
   Gets a single user.
 
-  Returns `nil` if the User does not exist.
+  Returns not_found error if the User does not exist.
 
   ## Examples
 
@@ -49,7 +33,7 @@ defmodule Blog.Users do
       {:error, :not_found, "message"}
 
   """
-  @spec get_user(charlist) :: %User{}
+  @spec get_user(binary) :: {:ok, %User{}} | {:error, :not_found, String.t()}
   def get_user(id) do
     case Repo.get(User, id) do
       %User{} = user -> {:ok, user}
@@ -74,8 +58,15 @@ defmodule Blog.Users do
       {:error, %Ecto.Changeset{}}
 
   """
-  @spec create_user(t()) ::
-          %User{}
+
+  @type create_attrs :: %{
+          display_name: String.t(),
+          email: String.t(),
+          password: String.t(),
+          image: String.t()
+        }
+
+  @spec create_user(create_attrs()) :: {:ok, %User{}} | {:error, %Ecto.Changeset{}}
   def create_user(attrs \\ %{}) do
     %User{}
     |> User.changeset(attrs)
@@ -93,7 +84,7 @@ defmodule Blog.Users do
       iex> delete_user(42)
       {:error, %Changeset{}}
   """
-  @spec delete_user(String.t()) :: {:ok, map()}
+  @spec delete_user(String.t()) :: {:ok, %User{}}
   def delete_user(id) do
     user = Repo.get(User, id)
     Repo.delete(user)
@@ -110,7 +101,9 @@ defmodule Blog.Users do
       iex> authenticate("vini@mail.com", "invalid")
       {:error, :invalid_credentials}
   """
-  @spec authenticate(%{password: String.t(), email: String.t()}) :: {:ok, %User{}}
+  @type auth_attrs :: %{password: String.t(), email: String.t()}
+  @spec authenticate(auth_attrs()) ::
+          {:ok, %User{}} | {:error, %Ecto.Changeset{}} | {:error, :invalid_credentials}
   def authenticate(attrs) do
     with %Ecto.Changeset{valid?: true} <- User.login_changeset(attrs),
          %User{} = user <-
