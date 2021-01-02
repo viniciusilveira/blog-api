@@ -69,15 +69,13 @@ defmodule BlogWeb.UserControllerTest do
       {:ok, token, _claims} = Guardian.encode_and_sign(user)
       conn = put_req_header(conn, "authorization", "Bearer #{token}")
 
-      {:ok, conn: conn}
+      {:ok, conn: conn, user: user }
     end
 
-    test "renders all users", %{conn: conn} do
-      insert_pair(:user)
+    test "renders all users", %{conn: conn, user: user} do
       conn = get(conn, Routes.user_path(conn, :index))
-      assert response = json_response(conn, 200)
 
-      assert Enum.count(response) == 3
+      assert render_json("index.json", users: [user]) == json_response(conn, 200)
     end
 
     test "renders error when token does not send", %{conn: conn} do
@@ -109,12 +107,7 @@ defmodule BlogWeb.UserControllerTest do
 
     test "render a requested user", %{conn: conn, user: user} do
       conn = get(conn, Routes.user_path(conn, :show, user.id))
-      assert response = json_response(conn, 200)
-
-      assert response["id"] == user.id
-      assert response["display_name"] == user.display_name
-      assert response["email"] == user.email
-      assert response["image"] == user.image
+      assert render_json("show.json", user: user) == json_response(conn, 200)
     end
 
     test "render a error message when user not found", %{conn: conn} do
@@ -174,5 +167,13 @@ defmodule BlogWeb.UserControllerTest do
 
       assert response["message"] == "Token is expired or invalid"
     end
+  end
+
+  defp render_json(template, assigns) do
+    assigns = Map.new(assigns)
+
+    BlogWeb.UserView.render(template, assigns)
+    |> Jason.encode!
+    |> Jason.decode!
   end
 end
