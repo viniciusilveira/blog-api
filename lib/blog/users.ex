@@ -78,17 +78,14 @@ defmodule Blog.Users do
 
   ## Examples
 
-      iex> delete_user("514a6e41-b377-48bf-9087-c01cc6e028f9")
+      iex> delete_user(user)
       {:ok, %{}}
 
-      iex> delete_user(42)
+      iex> delete_user(user)
       {:error, %Changeset{}}
   """
-  @spec delete_user(String.t()) :: {:ok, %User{}}
-  def delete_user(id) do
-    user = Repo.get(User, id)
-    Repo.delete(user)
-  end
+  @spec delete_user(%User{}) :: {:ok, %User{}} | {:error, %Ecto.Changeset{}}
+  def delete_user(user), do: Repo.delete(user)
 
   @doc """
   Authenticate user
