@@ -8,7 +8,7 @@ defmodule Blog.Posts do
 
   alias Blog.Posts.Post
 
-  @behaviour Blog.PostBehaviour
+  @behaviour Blog.PostsBehaviour
 
   @impl true
   def list_posts do

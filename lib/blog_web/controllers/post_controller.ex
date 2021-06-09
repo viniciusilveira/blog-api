@@ -25,7 +25,10 @@ defmodule BlogWeb.PostController do
   def create(conn, post_params) do
     with %User{} = user <- Guardian.Plug.current_resource(conn),
          {:ok, %Post{} = post} <-
-           Posts.create_post(Map.merge(post_params, %{"user_id" => user.id})) do
+           post_params
+           |> Map.merge(%{"user_id" => user.id})
+           |> map_of_atoms()
+           |> posts().create_post() do
       conn
       |> put_status(:created)
       |> put_resp_header("location", Routes.post_path(conn, :show, post))
@@ -63,5 +66,14 @@ defmodule BlogWeb.PostController do
       true -> {:ok, :success}
       _ -> {:error, :unauthorized, "Unauthorized user"}
     end
+  end
+
+  def map_of_atoms(map) do
+    map
+    |> Map.new(fn {k, v} -> {String.to_atom(k), v} end)
+  end
+
+  defp posts do
+    Application.get_env(:blog, :posts)
   end
 end

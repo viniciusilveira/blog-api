@@ -51,7 +51,7 @@ defmodule Blog.PostsBehaviour do
       {:error, %Ecto.Changeset{}}
 
   """
-  @type create_attrs :: %{title: String.t(), content: String.t(), user_id: binary}
+  @type create_attrs :: %{title: String.t(), content: String.t(), user_id: binary()}
   @callback create_post(create_attrs()) :: {:ok, Post.t()} | {:error, %Ecto.Changeset{}}
 
   @doc """

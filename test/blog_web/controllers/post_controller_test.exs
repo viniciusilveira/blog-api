@@ -3,33 +3,30 @@ defmodule BlogWeb.PostControllerTest do
   alias Blog.Repo
 
   import Blog.Factory
-  import Mox
+  import Hammox
 
-  alias Blog.{Guardian, PostsBehaviour, Users}
-  alias Blog.Posts.Post
+  alias Blog.{Guardian, Users}
 
-  @valid_attrs string_params_for(:post)
+  @valid_attrs params_for(:post)
 
   setup %{conn: conn} do
+    defmock(Blog.PostsFaker, for: Blog.PostsBehaviour)
     {:ok, user} = Users.create_user(params_for(:user))
     {:ok, token, _claims} = Guardian.encode_and_sign(user)
     conn = put_req_header(conn, "authorization", "Bearer #{token}")
-
-    defmock(PostsMock, for: PostsBehaviour)
 
     {:ok, conn: put_req_header(conn, "accept", "application/json"), user: user}
   end
 
   describe "#POST /posts" do
     test "renders post when data is valid", %{conn: conn} do
-      expect(PostsMock, :create_post, fn @valid_attrs ->
-        build(:post)
-      end)
+      expect(Blog.PostsFaker, :create_post, fn _attrs -> {:ok, build(:post)} end)
 
-      conn = post(conn, Routes.post_path(conn, :create), @valid_attrs)
+      conn =
+        conn
+        |> post(Routes.post_path(conn, :create), @valid_attrs)
 
-      post = Post |> Ecto.Query.first() |> Repo.one()
-      assert render_json("show.json", post: post) == json_response(conn, 201)
+      assert conn.status == 201
     end
 
     test "renders error message when title  is empty", %{conn: conn} do

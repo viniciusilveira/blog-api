@@ -1,6 +1,13 @@
 defmodule Blog.Posts.Post do
   @moduledoc false
 
+  @type t :: %__MODULE__{
+          id: binary(),
+          content: String.t(),
+          title: String.t(),
+          user_id: binary()
+        }
+
   use Ecto.Schema
   import Ecto.Changeset
 
