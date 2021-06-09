@@ -3,8 +3,9 @@ defmodule BlogWeb.PostControllerTest do
   alias Blog.Repo
 
   import Blog.Factory
+  import Mox
 
-  alias Blog.{Guardian, Posts, Users}
+  alias Blog.{Guardian, PostsBehaviour, Users}
   alias Blog.Posts.Post
 
   @valid_attrs string_params_for(:post)
@@ -14,11 +15,17 @@ defmodule BlogWeb.PostControllerTest do
     {:ok, token, _claims} = Guardian.encode_and_sign(user)
     conn = put_req_header(conn, "authorization", "Bearer #{token}")
 
+    defmock(PostsMock, for: PostsBehaviour)
+
     {:ok, conn: put_req_header(conn, "accept", "application/json"), user: user}
   end
 
   describe "#POST /posts" do
     test "renders post when data is valid", %{conn: conn} do
+      expect(PostsMock, :create_post, fn @valid_attrs ->
+        build(:post)
+      end)
+
       conn = post(conn, Routes.post_path(conn, :create), @valid_attrs)
 
       post = Post |> Ecto.Query.first() |> Repo.one()
@@ -128,10 +135,12 @@ defmodule BlogWeb.PostControllerTest do
 
     test "render all searched posts by content", %{conn: conn, user: %{id: user_id}} do
       insert_pair(:post, user_id: user_id, title: "Elixir > Java")
+
       posts =
         :post
-        |>insert_pair(user_id: user_id, content: "Elixir is the best programing language")
+        |> insert_pair(user_id: user_id, content: "Elixir is the best programing language")
         |> Repo.preload(:user)
+
       conn = get(conn, "/post/search?q=programing language")
       assert render_json("index.json", posts: posts) == json_response(conn, 200)
     end
@@ -284,7 +293,7 @@ defmodule BlogWeb.PostControllerTest do
     assigns = Map.new(assigns)
 
     BlogWeb.PostView.render(template, assigns)
-    |> Jason.encode!
-    |> Jason.decode!
+    |> Jason.encode!()
+    |> Jason.decode!()
   end
 end
