@@ -8,31 +8,16 @@ defmodule Blog.Posts do
 
   alias Blog.Posts.Post
 
-  @doc """
-  Returns the list of posts.
+  @behaviour Blog.PostsBehaviour
 
-  ## Examples
-
-      iex> list_posts()
-      [%Post{}, ...]
-
-  """
-  @spec list_posts() :: {:ok, list}
+  @impl true
   def list_posts do
     Post
     |> Repo.all()
     |> Repo.preload(:user)
   end
 
-  @doc """
-  Returns the posts founds
-
-  ## Examples
-
-      iex> search_posts(term)
-      [%Post{}, ...]
-  """
-  @spec search_posts(String.t()) :: {:ok, list}
+  @impl true
   def search_posts(term) do
     query =
       from p in Post,
@@ -42,19 +27,7 @@ defmodule Blog.Posts do
     {:ok, Repo.all(query) |> Repo.preload(:user)}
   end
 
-  @doc """
-  Gets a single post.
-
-  ## Examples
-
-      iex> get_post(123)
-      %Post{}
-
-      iex> get_post(456)
-      {:error, :not_found, "message"}
-
-  """
-  @spec get_post(String.t()) :: {:ok, list} | {:error, :not_found, String.t()}
+  @impl true
   def get_post(id) do
     case Repo.get(Post, id) do
       %Post{} = post -> {:ok, post |> Repo.preload(:user)}
@@ -62,40 +35,14 @@ defmodule Blog.Posts do
     end
   end
 
-  @doc """
-  Creates a post.
-
-  ## Examples
-
-      iex> create_post(%{title: "Foo title" , content: "Foo content", user_id: "59f8b8c3-9a2e-43dc-a406-ae1cc85fea44"})
-      {:ok, %Post{}}
-
-      iex> create_post(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  @type create_attrs :: %{title: String.t(), content: String.t(), user_id: binary}
-  @spec create_post(create_attrs()) :: {:ok, %Post{}} | {:error, %Ecto.Changeset{}}
+  @impl true
   def create_post(attrs \\ %{}) do
     %Post{}
     |> Post.changeset(attrs)
     |> Repo.insert()
   end
 
-  @doc """
-  Updates a post.
-
-  ## Examples
-
-      iex> update_post(post, %{title: "Foo title" , content: "Foo content"})
-      {:ok, %Post{}}
-
-      iex> update_post(post, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  @type update_attrs :: %{title: String.t(), content: String.t()}
-  @spec update_post(%Post{}, update_attrs()) :: {:ok, %Post{}} | {:error, %Ecto.Changeset{}}
+  @impl true
   def update_post(%Post{} = post, attrs) do
     case Post.valid_update_changeset(attrs) do
       %Ecto.Changeset{valid?: true} ->
@@ -108,19 +55,7 @@ defmodule Blog.Posts do
     end
   end
 
-  @doc """
-  Deletes a post.
-
-  ## Examples
-
-      iex> delete_post(post)
-      {:ok, %Post{}}
-
-      iex> delete_post(post)
-      {:error, %Ecto.Changeset{}}
-
-  """
-  @spec delete_post(%Post{}) :: {:ok, %Post{}} | {:error, %Ecto.Changeset{}}
+  @impl true
   def delete_post(%Post{} = post) do
     Repo.delete(post)
   end

@@ -46,7 +46,8 @@ defmodule Blog.MixProject do
       {:argon2_elixir, "~> 2.0"},
       {:faker, "~> 0.16", only: :test},
       {:ex_machina, "~> 2.4", only: :test},
-      {:guardian, "~> 2.0"}
+      {:guardian, "~> 2.0"},
+      {:hammox, "~> 0.5", only: :test}
     ]
   end
 

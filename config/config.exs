@@ -9,7 +9,8 @@ use Mix.Config
 
 config :blog,
   ecto_repos: [Blog.Repo],
-  generators: [binary_id: true]
+  generators: [binary_id: true],
+  posts: Blog.Posts
 
 # Configures the endpoint
 config :blog, BlogWeb.Endpoint,

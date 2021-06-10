@@ -3,13 +3,14 @@ defmodule BlogWeb.PostControllerTest do
   alias Blog.Repo
 
   import Blog.Factory
+  import Hammox
 
-  alias Blog.{Guardian, Posts, Users}
-  alias Blog.Posts.Post
+  alias Blog.{Guardian, Users}
 
-  @valid_attrs string_params_for(:post)
+  @valid_attrs params_for(:post)
 
   setup %{conn: conn} do
+    defmock(Blog.PostsFaker, for: Blog.PostsBehaviour)
     {:ok, user} = Users.create_user(params_for(:user))
     {:ok, token, _claims} = Guardian.encode_and_sign(user)
     conn = put_req_header(conn, "authorization", "Bearer #{token}")
@@ -18,11 +19,17 @@ defmodule BlogWeb.PostControllerTest do
   end
 
   describe "#POST /posts" do
-    test "renders post when data is valid", %{conn: conn} do
-      conn = post(conn, Routes.post_path(conn, :create), @valid_attrs)
+    test "renders post when data is valid", %{conn: conn, user: user} do
+      expect(Blog.PostsFaker, :create_post, fn _attrs ->
+        {:ok,
+         build(:post, Map.merge(@valid_attrs, %{id: Ecto.UUID.generate(), user_id: user.id}))}
+      end)
 
-      post = Post |> Ecto.Query.first() |> Repo.one()
-      assert render_json("show.json", post: post) == json_response(conn, 201)
+      conn =
+        conn
+        |> post(Routes.post_path(conn, :create), @valid_attrs)
+
+      assert conn.status == 201
     end
 
     test "renders error message when title  is empty", %{conn: conn} do
@@ -128,10 +135,12 @@ defmodule BlogWeb.PostControllerTest do
 
     test "render all searched posts by content", %{conn: conn, user: %{id: user_id}} do
       insert_pair(:post, user_id: user_id, title: "Elixir > Java")
+
       posts =
         :post
-        |>insert_pair(user_id: user_id, content: "Elixir is the best programing language")
+        |> insert_pair(user_id: user_id, content: "Elixir is the best programing language")
         |> Repo.preload(:user)
+
       conn = get(conn, "/post/search?q=programing language")
       assert render_json("index.json", posts: posts) == json_response(conn, 200)
     end
@@ -284,7 +293,7 @@ defmodule BlogWeb.PostControllerTest do
     assigns = Map.new(assigns)
 
     BlogWeb.PostView.render(template, assigns)
-    |> Jason.encode!
-    |> Jason.decode!
+    |> Jason.encode!()
+    |> Jason.decode!()
   end
 end
