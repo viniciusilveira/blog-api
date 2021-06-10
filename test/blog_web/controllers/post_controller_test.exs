@@ -19,8 +19,11 @@ defmodule BlogWeb.PostControllerTest do
   end
 
   describe "#POST /posts" do
-    test "renders post when data is valid", %{conn: conn} do
-      expect(Blog.PostsFaker, :create_post, fn _attrs -> {:ok, build(:post)} end)
+    test "renders post when data is valid", %{conn: conn, user: user} do
+      expect(Blog.PostsFaker, :create_post, fn _attrs ->
+        {:ok,
+         build(:post, Map.merge(@valid_attrs, %{id: Ecto.UUID.generate(), user_id: user.id}))}
+      end)
 
       conn =
         conn

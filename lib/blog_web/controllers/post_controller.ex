@@ -26,8 +26,8 @@ defmodule BlogWeb.PostController do
     with %User{} = user <- Guardian.Plug.current_resource(conn),
          {:ok, %Post{} = post} <-
            post_params
-           |> Map.merge(%{"user_id" => user.id})
-           |> map_of_atoms()
+           |> Map.put("user_id", user.id)
+           |> convert_to_map_of_atoms()
            |> posts().create_post() do
       conn
       |> put_status(:created)
@@ -68,9 +68,8 @@ defmodule BlogWeb.PostController do
     end
   end
 
-  def map_of_atoms(map) do
-    map
-    |> Map.new(fn {k, v} -> {String.to_atom(k), v} end)
+  def convert_to_map_of_atoms(map) do
+    Map.new(map, fn {k, v} -> {String.to_atom(k), v} end)
   end
 
   defp posts do
